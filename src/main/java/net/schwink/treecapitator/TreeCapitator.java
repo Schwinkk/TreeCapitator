@@ -2,9 +2,14 @@ package net.schwink.treecapitator;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -13,6 +18,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.slf4j.Logger;
+import java.lang.String;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(TreeCapitator.MODID)
@@ -60,6 +66,25 @@ public final class TreeCapitator {
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+        }
+    }
+
+    @Mod.EventBusSubscriber
+    public static class TreeCapitatorStarter {
+        @SubscribeEvent
+        public static void OnBlockBreak(BlockEvent.BreakEvent event) {
+
+            var player = event.getPlayer();
+            var level = event.getLevel();
+            var pos = event.getPos();
+            var state = event.getState();
+
+            var blockTag = state.getBlock().
+
+            TagKey<Blocks> LOGS = TagKey.create(Registries.ITEM, new ResourceLocation)
+
+            if (blockTag.)
+            player.displayClientMessage(Component.literal(state.getBlock().getName().getString()), false);
         }
     }
 }
