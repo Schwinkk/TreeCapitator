@@ -2,11 +2,12 @@ package net.schwink.treecapitator;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -17,6 +18,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import java.lang.String;
 
@@ -69,6 +71,8 @@ public final class TreeCapitator {
         }
     }
 
+    public static final TagKey<Block> LOGS_TAG = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("minecraft", "logs"));
+
     @Mod.EventBusSubscriber
     public static class TreeCapitatorStarter {
         @SubscribeEvent
@@ -79,12 +83,15 @@ public final class TreeCapitator {
             var pos = event.getPos();
             var state = event.getState();
 
-            var blockTag = state.getBlock().
+            if (isBlockLog(state)){
+                player.displayClientMessage(Component.literal(state.getBlock().getName().getString()), false);
 
-            TagKey<Blocks> LOGS = TagKey.create(Registries.ITEM, new ResourceLocation)
 
-            if (blockTag.)
-            player.displayClientMessage(Component.literal(state.getBlock().getName().getString()), false);
+            }
         }
+    }
+
+    public static boolean isBlockLog(BlockState state){
+        return state.is(LOGS_TAG);
     }
 }
