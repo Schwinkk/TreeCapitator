@@ -2,9 +2,12 @@ package net.schwink.treecapitator;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,6 +24,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import java.lang.String;
+import java.util.HashSet;
+import java.util.Set;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(TreeCapitator.MODID)
@@ -75,23 +80,32 @@ public final class TreeCapitator {
 
     @Mod.EventBusSubscriber
     public static class TreeCapitatorStarter {
+
+        public static Set<BlockPos> logsPositions = new HashSet<>();
+
         @SubscribeEvent
         public static void OnBlockBreak(BlockEvent.BreakEvent event) {
 
             var player = event.getPlayer();
-            var level = event.getLevel();
-            var pos = event.getPos();
+            Level level = (Level) event.getLevel(); // надеюсь приведение ничего не сломает))))
+            BlockPos pos = event.getPos();
             var state = event.getState();
 
             if (isBlockLog(state)){
                 player.displayClientMessage(Component.literal(state.getBlock().getName().getString()), false);
 
+                getLogsHashSet(pos, level);
+            }
+        }
+
+        private static boolean isBlockLog(BlockState state){
+            return state.is(LOGS_TAG);
+        }
+
+        private static void getLogsHashSet(BlockPos pos, Level level){
+            for (Direction dir : Direction.values()){
 
             }
         }
-    }
-
-    public static boolean isBlockLog(BlockState state){
-        return state.is(LOGS_TAG);
     }
 }
