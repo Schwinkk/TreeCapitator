@@ -7,6 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -22,10 +23,12 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
+
+import java.io.Console;
 import java.lang.String;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(TreeCapitator.MODID)
@@ -91,20 +94,59 @@ public final class TreeCapitator {
             BlockPos pos = event.getPos();
             var state = event.getState();
 
-            if (isBlockLog(state)){
+            if (isBlockLog(state)) {
                 player.displayClientMessage(Component.literal(state.getBlock().getName().getString()), false);
 
-                getLogsHashSet(pos, level);
+                getLogsHashMap(pos, level);
+
+                destroyAndDrop(level, player);
+
+                logsPositions.clear();
             }
         }
 
-        private static boolean isBlockLog(BlockState state){
+        private static boolean isBlockLog(BlockState state) {
             return state.is(LOGS_TAG);
         }
 
-        private static void getLogsHashSet(BlockPos pos, Level level){
-            for (Direction dir : Direction.values()){
+        private static void getLogsHashMap(BlockPos pos, Level level) {
 
+            boolean isTreeEnded = false;
+            logsPositions.add(pos);
+
+            while (!isTreeEnded) {
+                int setLength = logsPositions.size();
+
+                for (BlockPos blockPos : new ArrayList<>(logsPositions.stream().toList())) {
+                    checkNeighborsAndWrite(blockPos, level);
+                }
+
+                if (logsPositions.size() == setLength) {
+                    isTreeEnded = true;
+                }
+            }
+
+            logsPositions.remove(pos);
+        }
+
+        private static void checkNeighborsAndWrite(BlockPos pos, Level level) {
+            Direction[] directions = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP};
+
+            for (Direction dir : directions) {
+                if (level.getBlockState(pos.relative(dir)).is(LOGS_TAG)) {
+                    logsPositions.add(pos.relative(dir));
+                    System.out.println("NASHEL");
+                }
+            }
+        }
+
+        private static void destroyAndDrop(Level level, Player player){
+            if (level.isClientSide) return;
+
+            ItemStack tool = player.getMainHandItem();
+            for (BlockPos pos : logsPositions){
+                Block.dropResources(level.getBlockState(pos), level, pos, level.getBlockEntity(pos), player, tool);
+                level.destroyBlock(pos,false);
             }
         }
     }
