@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -84,6 +85,11 @@ public final class TreeCapitator {
     @Mod.EventBusSubscriber
     public static class TreeCapitatorStarter {
 
+        @SubscribeEvent
+        public  static void OnBreakSpeed(PlayerEvent.BreakSpeed event){
+            BlockState state = event.getState();
+        }
+
         public static Set<BlockPos> logsPositions = new HashSet<>();
 
         @SubscribeEvent
@@ -111,33 +117,39 @@ public final class TreeCapitator {
 
         private static void getLogsHashMap(BlockPos pos, Level level) {
 
-            boolean isTreeEnded = false;
-            logsPositions.add(pos);
+            List<BlockPos> blocksToIterate = new ArrayList<>();
+            blocksToIterate.add(pos);
 
-            while (!isTreeEnded) {
-                int setLength = logsPositions.size();
+            while (!blocksToIterate.isEmpty()) {
+                List<BlockPos> currentBlocks = List.copyOf(blocksToIterate);
 
-                for (BlockPos blockPos : new ArrayList<>(logsPositions.stream().toList())) {
-                    checkNeighborsAndWrite(blockPos, level);
-                }
+                blocksToIterate.clear();
 
-                if (logsPositions.size() == setLength) {
-                    isTreeEnded = true;
+                for (BlockPos blockPos : currentBlocks) {
+                    blocksToIterate.addAll(checkNeighborsAndWrite(blockPos, level));
                 }
             }
-
-            logsPositions.remove(pos);
         }
 
-        private static void checkNeighborsAndWrite(BlockPos pos, Level level) {
-            Direction[] directions = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP};
+        private static List<BlockPos> checkNeighborsAndWrite(BlockPos pos, Level level) {
+            Direction[] directions = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP}; // добавить по диагоналям парсинг
+
+            List<BlockPos> result = new ArrayList<>();
 
             for (Direction dir : directions) {
                 if (level.getBlockState(pos.relative(dir)).is(LOGS_TAG)) {
+                    if (logsPositions.contains(pos.relative(dir))){
+                        continue;
+                    }
+
                     logsPositions.add(pos.relative(dir));
                     System.out.println("NASHEL");
+
+                    result.add(pos.relative(dir));
                 }
             }
+
+            return result;
         }
 
         private static void destroyAndDrop(Level level, Player player){
