@@ -39,47 +39,6 @@ public final class TreeCapitator {
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public TreeCapitator(FMLJavaModLoadingContext context) {
-        var modBusGroup = context.getModBusGroup();
-
-        // Register the commonSetup method for modloading
-        FMLCommonSetupEvent.getBus(modBusGroup).addListener(this::commonSetup);
-
-        // Register the item to a creative tab
-        BuildCreativeModeTabContentsEvent.getBus(modBusGroup).addListener(TreeCapitator::addCreative);
-
-        // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
-        context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
-    }
-
-    private void commonSetup(final FMLCommonSetupEvent event) {
-        // Some common setup code
-        LOGGER.info("HELLO FROM COMMON SETUP");
-
-        if (Config.logDirtBlock)
-            LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
-
-        LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
-
-        Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
-    }
-
-    // Add the example block item to the building blocks tab
-    private static void addCreative(BuildCreativeModeTabContentsEvent event) {
-
-    }
-
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
-    @Mod.EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
-    public static class ClientModEvents {
-        @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event) {
-            // Some client setup code
-            LOGGER.info("HELLO FROM CLIENT SETUP");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-        }
-    }
-
     public static final TagKey<Block> LOGS_TAG = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("minecraft", "logs"));
 
     @Mod.EventBusSubscriber
@@ -153,7 +112,6 @@ public final class TreeCapitator {
         }
 
         private static void destroyAndDrop(Level level, Player player){
-            if (level.isClientSide) return;
 
             ItemStack tool = player.getMainHandItem();
             for (BlockPos pos : logsPositions){
