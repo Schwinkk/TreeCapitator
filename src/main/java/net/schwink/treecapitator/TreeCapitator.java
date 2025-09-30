@@ -45,29 +45,29 @@ public final class TreeCapitator {
     public static class TreeCapitatorStarter {
 
         @SubscribeEvent
-        public  static void OnBreakSpeed(PlayerEvent.BreakSpeed event){
+        public static void OnBreakSpeed(PlayerEvent.BreakSpeed event){
             BlockState state = event.getState();
         }
-
-        public static Set<BlockPos> logsPositions = new HashSet<>();
 
         @SubscribeEvent
         public static void OnBlockBreak(BlockEvent.BreakEvent event) {
 
+            var state = event.getState();
+            if (!isBlockLog(state)){
+                return;
+            }
+
+            Set<BlockPos> logsPositions = new HashSet<>();
+
             var player = event.getPlayer();
             Level level = (Level) event.getLevel(); // надеюсь приведение ничего не сломает))))
             BlockPos pos = event.getPos();
-            var state = event.getState();
 
-            if (isBlockLog(state)) {
-                player.displayClientMessage(Component.literal(state.getBlock().getName().getString()), false);
+            player.displayClientMessage(Component.literal(state.getBlock().getName().getString()), false);
 
-                getLogsHashMap(pos, level);
+            getLogsHashMap(pos, level);
+            destroyAndDrop(level, player);
 
-                destroyAndDrop(level, player);
-
-                logsPositions.clear();
-            }
         }
 
         private static boolean isBlockLog(BlockState state) {
