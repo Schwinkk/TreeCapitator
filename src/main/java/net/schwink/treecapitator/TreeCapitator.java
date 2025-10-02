@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -56,22 +57,73 @@ public final class TreeCapitator {
     @Mod.EventBusSubscriber
     public static class TreeCapitatorStarter {
 
-/*        @SubscribeEvent
-        public static void OnBreakSpeed(PlayerEvent.BreakSpeed event){
-            BlockState state = event.getState();
+        @SubscribeEvent
+        public static void GetBlockCount(PlayerInteractEvent.LeftClickBlock event){
+            BlockState state = event.getEntity().getBlockStateOn();
 
             if (!isBlockLog(state)){
                 return;
             }
 
-            ServerPlayer player = (ServerPlayer) event.getEntity();
-            BlockPos pos = event.getEntity().getOnPos();
-            Level level = event.getEntity().level();
+            BlockPos pos = event.getPos();
+            Level level = event.getLevel();
 
-            double destroySpeedModifier = 1 + Math.pow(Math.log(Math.pow(DataManager.GetLogSet(player).size(), 2)), 2);
 
-            event.setNewSpeed((float) destroySpeedModifier);
-        }*/
+        }
+
+        @SubscribeEvent
+        public static void OnBreakSpeed(PlayerEvent.BreakSpeed event){
+
+        }
+
+        public static int GetLogsCount(BlockPos pos, Level level){
+            List<BlockPos> blocksToIterate = new ArrayList<>();
+            List<BlockPos> allIteratedBlocks = new ArrayList<>();
+            blocksToIterate.add(pos);
+            allIteratedBlocks.add(pos);
+
+            while (!blocksToIterate.isEmpty()) {
+                List<BlockPos> currentBlocks = List.copyOf(blocksToIterate);
+
+                blocksToIterate.clear();
+
+                for (BlockPos blockPos : currentBlocks) {
+                    blocksToIterate.addAll(GetNeighboursCount(pos, level, allIteratedBlocks));
+                    allIteratedBlocks.addAll(blocksToIterate);
+                }
+            }
+
+            int result = allIteratedBlocks.size();
+            allIteratedBlocks.clear();
+
+            return result;
+        }
+
+        private static List<BlockPos> GetNeighboursCount(BlockPos pos, Level level,  List<BlockPos> allIteratedBlocks) {
+            Direction[] directions = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP}; // добавить по диагоналям парсинг
+
+            List<BlockPos> result = new ArrayList<>();
+
+            for (Direction dir : directions) {
+                if (level.getBlockState(pos.relative(dir)).is(LOGS_TAG)) {
+                    if (allIteratedBlocks.contains(pos.relative(dir))){
+                        continue;
+                    }
+
+                    result.add(pos.relative(dir));
+                }
+            }
+
+            return result;
+        }
+
+
+
+
+
+
+
+
 
         @SubscribeEvent
         public static void OnBlockBreak(BlockEvent.BreakEvent event) {
