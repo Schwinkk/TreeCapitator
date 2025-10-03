@@ -4,8 +4,10 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -33,24 +35,24 @@ public final class TreeCapitator {
     public static class DataManager {
         private static final Map<UUID, Set<BlockPos>> logsPositions = new HashMap<>();
 
-        public static void InitializeLogSet (ServerPlayer player, BlockPos blockPos){
+        public static void InitializeLogSet (UUID uuid, BlockPos blockPos){
             Set<BlockPos> currentPos = new HashSet<>();
             currentPos.add(blockPos);
-            logsPositions.put(player.getUUID(), currentPos);
+            logsPositions.put(uuid, currentPos);
         }
 
-        public static void AddToLogSet (ServerPlayer player, BlockPos blockPos){
-            Set<BlockPos> currentPos = logsPositions.get(player.getUUID());
+        public static void AddToLogSet (UUID uuid, BlockPos blockPos){
+            Set<BlockPos> currentPos = logsPositions.get(uuid);
             currentPos.add(blockPos);
-            logsPositions.put(player.getUUID(), currentPos);
+            logsPositions.put(uuid, currentPos);
         }
 
-        public static Set<BlockPos> GetLogSet(ServerPlayer player){
-            return logsPositions.get(player.getUUID());
+        public static Set<BlockPos> GetLogSet(UUID uuid){
+            return logsPositions.get(uuid);
         }
 
-        public static void ClearLogSet (ServerPlayer player){
-            logsPositions.remove(player.getUUID());
+        public static void ClearLogSet (UUID uuid){
+            logsPositions.remove(uuid);
         }
     }
 
@@ -59,71 +61,31 @@ public final class TreeCapitator {
 
         @SubscribeEvent
         public static void GetBlockCount(PlayerInteractEvent.LeftClickBlock event){
-            BlockState state = event.getEntity().getBlockStateOn();
+
+            BlockPos pos = event.getPos();
+            Level level = event.getLevel();
+            Player player = event.getEntity();
+
+            BlockState state = level.getBlockState(pos);
 
             if (!isBlockLog(state)){
                 return;
             }
 
-            BlockPos pos = event.getPos();
-            Level level = event.getLevel();
+            DataManager.ClearLogSet(player.getUUID());
 
-
+            DataManager.InitializeLogSet(player.getUUID(), pos);
+            getLogsHashSet(pos, level, player.getUUID());
         }
 
         @SubscribeEvent
         public static void OnBreakSpeed(PlayerEvent.BreakSpeed event){
 
+            Player player = event.getEntity();
+
+            float newDestroySpeed = event.getOriginalSpeed() / DataManager.GetLogSet(player.getUUID()).size();
+            event.setNewSpeed(newDestroySpeed);
         }
-
-        public static int GetLogsCount(BlockPos pos, Level level){
-            List<BlockPos> blocksToIterate = new ArrayList<>();
-            List<BlockPos> allIteratedBlocks = new ArrayList<>();
-            blocksToIterate.add(pos);
-            allIteratedBlocks.add(pos);
-
-            while (!blocksToIterate.isEmpty()) {
-                List<BlockPos> currentBlocks = List.copyOf(blocksToIterate);
-
-                blocksToIterate.clear();
-
-                for (BlockPos blockPos : currentBlocks) {
-                    blocksToIterate.addAll(GetNeighboursCount(pos, level, allIteratedBlocks));
-                    allIteratedBlocks.addAll(blocksToIterate);
-                }
-            }
-
-            int result = allIteratedBlocks.size();
-            allIteratedBlocks.clear();
-
-            return result;
-        }
-
-        private static List<BlockPos> GetNeighboursCount(BlockPos pos, Level level,  List<BlockPos> allIteratedBlocks) {
-            Direction[] directions = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP}; // добавить по диагоналям парсинг
-
-            List<BlockPos> result = new ArrayList<>();
-
-            for (Direction dir : directions) {
-                if (level.getBlockState(pos.relative(dir)).is(LOGS_TAG)) {
-                    if (allIteratedBlocks.contains(pos.relative(dir))){
-                        continue;
-                    }
-
-                    result.add(pos.relative(dir));
-                }
-            }
-
-            return result;
-        }
-
-
-
-
-
-
-
-
 
         @SubscribeEvent
         public static void OnBlockBreak(BlockEvent.BreakEvent event) {
@@ -137,12 +99,9 @@ public final class TreeCapitator {
             Level level = (Level) event.getLevel(); // надеюсь приведение ничего не сломает))))
             BlockPos pos = event.getPos();
 
-            DataManager.InitializeLogSet(player, pos);
-
-            getLogsHashSet(pos, level, player);
             destroyAndDrop(level, player);
 
-            DataManager.ClearLogSet(player);
+            //DataManager.ClearLogSet(player.getUUID());
 
         }
 
@@ -150,7 +109,7 @@ public final class TreeCapitator {
             return state.is(LOGS_TAG);
         }
 
-        private static void getLogsHashSet(BlockPos pos, Level level, ServerPlayer player) {
+        private static void getLogsHashSet(BlockPos pos, Level level, UUID uuid) {
 
             List<BlockPos> blocksToIterate = new ArrayList<>();
             blocksToIterate.add(pos);
@@ -161,23 +120,23 @@ public final class TreeCapitator {
                 blocksToIterate.clear();
 
                 for (BlockPos blockPos : currentBlocks) {
-                    blocksToIterate.addAll(checkNeighborsAndWrite(blockPos, level, player));
+                    blocksToIterate.addAll(checkNeighborsAndWrite(blockPos, level, uuid));
                 }
             }
         }
 
-        private static List<BlockPos> checkNeighborsAndWrite(BlockPos pos, Level level, ServerPlayer player) {
+        private static List<BlockPos> checkNeighborsAndWrite(BlockPos pos, Level level, UUID uuid) {
             Direction[] directions = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP}; // добавить по диагоналям парсинг
 
             List<BlockPos> result = new ArrayList<>();
 
             for (Direction dir : directions) {
                 if (level.getBlockState(pos.relative(dir)).is(LOGS_TAG)) {
-                    if (DataManager.GetLogSet(player).contains(pos.relative(dir))){
+                    if (DataManager.GetLogSet(uuid).contains(pos.relative(dir))){
                         continue;
                     }
 
-                    DataManager.AddToLogSet(player, pos.relative((dir)));
+                    DataManager.AddToLogSet(uuid, pos.relative((dir)));
                     System.out.println("NASHEL");
 
                     result.add(pos.relative(dir));
@@ -190,7 +149,10 @@ public final class TreeCapitator {
         private static void destroyAndDrop(Level level, ServerPlayer player){
 
             ItemStack tool = player.getMainHandItem();
-            for (BlockPos pos : DataManager.GetLogSet(player)){
+
+            System.out.println("IDI NAHUI");
+
+            for (BlockPos pos : DataManager.GetLogSet(player.getUUID())){
                 Block.dropResources(level.getBlockState(pos), level, pos, level.getBlockEntity(pos), player, tool);
                 level.destroyBlock(pos,false);
             }
