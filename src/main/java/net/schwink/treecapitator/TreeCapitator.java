@@ -68,7 +68,7 @@ public final class TreeCapitator {
                 return;
             }
 
-            Player player = event.getPlayer();
+            ServerPlayer player = (ServerPlayer) event.getPlayer();
             Level level = (Level) event.getLevel(); // надеюсь приведение ничего не сломает))))
             BlockPos pos = event.getPos();
 
