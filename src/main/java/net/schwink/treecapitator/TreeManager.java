@@ -104,7 +104,7 @@ public class TreeManager {
         }
 
         Set<BlockPos> restricdedLeavesBlocks = new HashSet<>();
-        List<BlockPos> leavesBlocks = new ArrayList<>();
+        Set<BlockPos> leavesBlocks = new HashSet<>();
         blocksQueue.addAll(iteratedBlocks);
 
 
@@ -126,10 +126,26 @@ public class TreeManager {
                     System.out.println(radius);
 
                     // здесь собираем список запрещенных блоков
+                    for (int x = -radius; x < radius; x++){
+                        for (int y = -radius; y < radius; y++) {
+                            for (int z = -radius; z < radius; z++){
+                                BlockPos offset = new BlockPos(x, y, z);
+                                restricdedLeavesBlocks.add(blockPos.offset(dir).offset(offset));
+                            }
+                        }
+                    }
+
+                    // убираем блоки листвы, которые были записаны, но попали в черный список
+                    for (BlockPos restrictedPos : restricdedLeavesBlocks){
+                        if (leavesBlocks.contains(restrictedPos)){
+                            leavesBlocks.remove(restrictedPos);
+                        }
+                    }
+
 
                 }
                 if (level.getBlockState(blockPos.offset(dir)).is(LEAVES_TAG)){
-                    if (iteratedBlocks.contains(blockPos.offset(dir))) {
+                    if (leavesBlocks.contains(blockPos.offset(dir)) || restricdedLeavesBlocks.contains(blockPos.offset(dir))) {
                         continue;
                     }
 
