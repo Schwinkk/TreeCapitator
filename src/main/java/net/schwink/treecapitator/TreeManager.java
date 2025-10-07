@@ -107,7 +107,6 @@ public class TreeManager {
         Set<BlockPos> leavesBlocks = new HashSet<>();
         blocksQueue.addAll(iteratedBlocks);
 
-
         while (!blocksQueue.isEmpty()) {
             BlockPos blockPos = blocksQueue.poll();
             for (BlockPos dir : allDirections) {

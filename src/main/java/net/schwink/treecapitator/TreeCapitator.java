@@ -8,6 +8,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -47,6 +48,7 @@ public final class TreeCapitator {
             Level level = event.getEntity().level();
             Optional<BlockPos> optionalPos = event.getPosition();
             BlockPos pos;
+            Player player = event.getEntity();
 
 
             if (optionalPos.isPresent()){
@@ -56,7 +58,11 @@ public final class TreeCapitator {
                 return;
             }
 
-            System.out.println(TreeManager.getTreeSize(pos, level));
+            if (player.getMainHandItem().getItem() instanceof AxeItem){
+                int x = TreeManager.getTreeSize(pos, level);
+                float breakSpeedModifier = (float) Math.sqrt((double) 1 / x);
+                event.setNewSpeed(event.getOriginalSpeed() * breakSpeedModifier);
+            }
 
         }
 
@@ -72,8 +78,9 @@ public final class TreeCapitator {
             Level level = (Level) event.getLevel(); // надеюсь приведение ничего не сломает))))
             BlockPos pos = event.getPos();
 
-            TreeManager.destroyAndDrop(level, pos, player);
-
+            if (player.getMainHandItem().getItem() instanceof AxeItem){
+                TreeManager.destroyAndDrop(level, pos, player);
+            }
         }
 
         private static boolean isBlockLog(BlockState state) {
