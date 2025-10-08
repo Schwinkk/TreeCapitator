@@ -58,9 +58,10 @@ public final class TreeCapitator {
                 return;
             }
 
-            if (player.getMainHandItem().getItem() instanceof AxeItem){
-                int x = TreeManager.getTreeSize(pos, level);
-                float breakSpeedModifier = (float) Math.sqrt((double) 1 / x);
+            int x = TreeManager.getTreeSize(pos, level);
+
+            if (player.getMainHandItem().getItem() instanceof AxeItem & x > 1){
+                float breakSpeedModifier = (float) Math.sqrt((double) 1 / (x * 2));
                 event.setNewSpeed(event.getOriginalSpeed() * breakSpeedModifier);
             }
 
@@ -80,6 +81,7 @@ public final class TreeCapitator {
 
             if (player.getMainHandItem().getItem() instanceof AxeItem){
                 TreeManager.destroyAndDrop(level, pos, player);
+
             }
         }
 

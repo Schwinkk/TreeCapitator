@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -73,6 +74,11 @@ public class TreeManager {
         ItemStack tool = player.getMainHandItem();
 
         for (BlockPos destroyPos : blocksToDestroy) {
+
+            if (level.getBlockState(destroyPos).is(LOGS_TAG)){
+                tool.hurtAndBreak(1, player,InteractionHand.MAIN_HAND);
+            }
+
             System.out.println("BABA");
             Block.dropResources(level.getBlockState(destroyPos), level, destroyPos, level.getBlockEntity(destroyPos), player, tool);
             level.destroyBlock(destroyPos, false);
