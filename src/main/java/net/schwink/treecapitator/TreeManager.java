@@ -88,8 +88,6 @@ public class TreeManager {
             }
         }
 
-        System.out.println(iteratedBlocks.size());
-
         if (!checkLeaves){
             return iteratedBlocks;
         }
@@ -112,8 +110,6 @@ public class TreeManager {
                         }
                     }
                     int radius = (int)Math.ceil(Math.sqrt(lowestDist) / 2.0);
-
-                    System.out.println(radius);
 
                     // собираем список запрещенных блоков
                     for (int x = -radius; x < radius; x++){
@@ -142,9 +138,7 @@ public class TreeManager {
             }
         }
 
-        System.out.println(iteratedBlocks.size());
         iteratedBlocks.addAll(leavesBlocks);
-        System.out.println(iteratedBlocks.size());
         return iteratedBlocks;
     }
 }
