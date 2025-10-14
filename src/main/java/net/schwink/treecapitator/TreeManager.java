@@ -21,56 +21,39 @@ public class TreeManager {
     public static final TagKey<Block> LOGS_TAG = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("minecraft", "logs"));
     public static final TagKey<Block> LEAVES_TAG = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("minecraft", "leaves"));
 
-    public static BlockPos[] upDirections = {
-        new BlockPos( 1, 0, 0),
-        new BlockPos(-1, 0, 0),
-        new BlockPos( 0, 0, 1),
-        new BlockPos( 0, 0,-1),
-        new BlockPos( 0, 1, 0),
-        new BlockPos( 1, 0, 1),
-        new BlockPos( 1, 0,-1),
-        new BlockPos(-1, 0, 1),
-        new BlockPos(-1, 0,-1),
-        new BlockPos( 1, 1, 1),
-        new BlockPos( 1, 1,-1),
-        new BlockPos(-1, 1, 1),
-        new BlockPos(-1, 1,-1)
-    };
-    public static BlockPos[] allDirections = new BlockPos[]{
-        new BlockPos( 1, 0, 0),
-        new BlockPos(-1, 0, 0),
-        new BlockPos( 0, 0, 1),
-        new BlockPos( 0, 0,-1),
-        new BlockPos( 0, 1, 0),
-        new BlockPos( 1, 0, 1),
-        new BlockPos( 1, 0,-1),
-        new BlockPos(-1, 0, 1),
-        new BlockPos(-1, 0,-1),
-        new BlockPos( 1, 1, 1),
-        new BlockPos( 1, 1,-1),
-        new BlockPos(-1, 1, 1),
-        new BlockPos(-1, 1,-1),
-        new BlockPos(0, -1, 0),
-        new BlockPos( 1, -1, 1),
-        new BlockPos( 1, -1,-1),
-        new BlockPos(-1, -1, 1),
-        new BlockPos(-1, -1,-1)
-    };
+    public static final List<BlockPos> upDirections = new ArrayList<>();
 
-    private static boolean isBlockLog(BlockState state) {
-        return state.is(LOGS_TAG);
+    static {
+        for (int x = -1; x <= 1; x++) {
+            for (int y = 0; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    if (x == 0 && y == 0 & z == 0) continue;
+                    upDirections.add(new BlockPos(x, y, z));
+                }
+            }
+        }
+    }
+
+    public static final List<BlockPos> allDirections = new ArrayList<>();
+
+    static {
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    if (x == 0 && y == 0 && z == 0) continue;
+                    allDirections.add(new BlockPos(x, y, z));
+                }
+            }
+        }
     }
 
     public static int getTreeSize(BlockPos pos, Level level) {
-
         return getTreeList(pos, level, false).size();
     }
 
     public static void destroyAndDrop(Level level, BlockPos pos, ServerPlayer player) {
-        Set<BlockPos> blocksToDestroy = new HashSet<>();
 
-        blocksToDestroy = getTreeList(pos, level, true);
-
+        Set<BlockPos> blocksToDestroy = getTreeList(pos, level, true);
         ItemStack tool = player.getMainHandItem();
 
         for (BlockPos destroyPos : blocksToDestroy) {
@@ -79,7 +62,6 @@ public class TreeManager {
                 tool.hurtAndBreak(1, player,InteractionHand.MAIN_HAND);
             }
 
-            System.out.println("BABA");
             Block.dropResources(level.getBlockState(destroyPos), level, destroyPos, level.getBlockEntity(destroyPos), player, tool);
             level.destroyBlock(destroyPos, false);
         }
@@ -95,7 +77,7 @@ public class TreeManager {
         while (!blocksQueue.isEmpty()) {
             BlockPos blockPos = blocksQueue.poll();
             for (BlockPos dir : upDirections) {
-                if (level.getBlockState(blockPos.offset(dir) ).is(LOGS_TAG)){
+                if (level.getBlockState(blockPos.offset(dir)).is(LOGS_TAG)){
                     if (iteratedBlocks.contains(blockPos.offset(dir))) {
                         continue;
                     }
@@ -105,6 +87,9 @@ public class TreeManager {
                 }
             }
         }
+
+        System.out.println(iteratedBlocks.size());
+
         if (!checkLeaves){
             return iteratedBlocks;
         }
@@ -116,7 +101,7 @@ public class TreeManager {
         while (!blocksQueue.isEmpty()) {
             BlockPos blockPos = blocksQueue.poll();
             for (BlockPos dir : allDirections) {
-                if (level.getBlockState(blockPos.offset(dir)).is(LOGS_TAG) & !iteratedBlocks.contains(blockPos.offset(dir))){
+                if (level.getBlockState(blockPos.offset(dir)).is(LOGS_TAG) && !iteratedBlocks.contains(blockPos.offset(dir))){
 
                     // ищем расстояние от дерева до другого дерева
                     double lowestDist = Double.MAX_VALUE;
@@ -130,7 +115,7 @@ public class TreeManager {
 
                     System.out.println(radius);
 
-                    // здесь собираем список запрещенных блоков
+                    // собираем список запрещенных блоков
                     for (int x = -radius; x < radius; x++){
                         for (int y = -radius; y < radius; y++) {
                             for (int z = -radius; z < radius; z++){
@@ -142,13 +127,10 @@ public class TreeManager {
 
                     // убираем блоки листвы, которые были записаны, но попали в черный список
                     for (BlockPos restrictedPos : restricdedLeavesBlocks){
-                        if (leavesBlocks.contains(restrictedPos)){
-                            leavesBlocks.remove(restrictedPos);
-                        }
+                        leavesBlocks.remove(restrictedPos);
                     }
-
-
                 }
+
                 if (level.getBlockState(blockPos.offset(dir)).is(LEAVES_TAG)){
                     if (leavesBlocks.contains(blockPos.offset(dir)) || restricdedLeavesBlocks.contains(blockPos.offset(dir))) {
                         continue;
@@ -160,8 +142,9 @@ public class TreeManager {
             }
         }
 
+        System.out.println(iteratedBlocks.size());
         iteratedBlocks.addAll(leavesBlocks);
-
+        System.out.println(iteratedBlocks.size());
         return iteratedBlocks;
     }
 }
