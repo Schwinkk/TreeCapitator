@@ -24,7 +24,7 @@ import java.lang.String;
 import java.util.*;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod(TreeCapitator.MODID)
+@Mod("treecapitator")
 public final class TreeCapitator {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "treecapitator";

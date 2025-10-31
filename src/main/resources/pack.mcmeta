@@ -1,6 +1,6 @@
 {
   "pack": {
-    "description": "treecapitator resources",
-    "pack_format": 64
+    "pack_format": 48,
+    "description": "Treecapitator data resources"
   }
 }

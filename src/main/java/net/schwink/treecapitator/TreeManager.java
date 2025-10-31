@@ -1,15 +1,19 @@
 package net.schwink.treecapitator;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.*;
 
@@ -45,12 +49,12 @@ public class TreeManager {
     }
 
     public static int getTreeSize(BlockPos pos, Level level) {
-        return getTreeSet(pos, level, false).size();
+        return getTreeList(pos, level, false).size();
     }
 
     public static void destroyAndDrop(Level level, BlockPos pos, ServerPlayer player) {
 
-        Set<BlockPos> blocksToDestroy = getTreeSet(pos, level, true);
+        Set<BlockPos> blocksToDestroy = getTreeList(pos, level, true);
         ItemStack tool = player.getMainHandItem();
 
         for (BlockPos destroyPos : blocksToDestroy) {
@@ -59,13 +63,13 @@ public class TreeManager {
                 tool.hurtAndBreak(1, player,InteractionHand.MAIN_HAND);
             }
 
-            LootboxManager.dropItemFromTable((ServerLevel) level, pos, player);
             Block.dropResources(level.getBlockState(destroyPos), level, destroyPos, level.getBlockEntity(destroyPos), player, tool);
+            LootboxManager.dropItemFromTable((ServerLevel) level, pos, player);
             level.destroyBlock(destroyPos, false);
         }
     }
 
-    public static Set<BlockPos> getTreeSet(BlockPos pos, Level level, boolean checkLeaves){
+    public static Set<BlockPos> getTreeList(BlockPos pos, Level level, boolean checkLeaves){
         Queue<BlockPos> blocksQueue = new LinkedList<>();
         Set<BlockPos> iteratedBlocks = new HashSet<>();
 
