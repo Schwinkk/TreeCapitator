@@ -61,10 +61,10 @@ public class TreeManager {
 
             if (level.getBlockState(destroyPos).is(LOGS_TAG)){
                 tool.hurtAndBreak(1, player,InteractionHand.MAIN_HAND);
+                LootboxManager.dropItemFromTable((ServerLevel) level, destroyPos, player);
             }
 
             Block.dropResources(level.getBlockState(destroyPos), level, destroyPos, level.getBlockEntity(destroyPos), player, tool);
-            LootboxManager.dropItemFromTable((ServerLevel) level, pos, player);
             level.destroyBlock(destroyPos, false);
         }
     }

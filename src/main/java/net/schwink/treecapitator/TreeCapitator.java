@@ -81,7 +81,6 @@ public final class TreeCapitator {
 
             if (player.getMainHandItem().getItem() instanceof AxeItem){
                 TreeManager.destroyAndDrop(level, pos, player);
-
             }
         }
 

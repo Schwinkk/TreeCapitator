@@ -1,5 +1,6 @@
 {
   "type": "minecraft:block",
+  "name": "log_drop",
   "pools": [
     {
       "rolls": 1,
